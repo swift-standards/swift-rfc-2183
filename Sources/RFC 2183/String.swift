@@ -13,19 +13,42 @@ extension String {
         _ contentDisposition: RFC_2183.ContentDisposition
     ) {
         var result = contentDisposition.type.rawValue
-        
-        for (key, value) in contentDisposition.parameters.sorted(by: { $0.key < $1.key }) {
-            // Per RFC 2183 Section 2, parameter values SHOULD be quoted
-            // Certain parameters like size may be unquoted tokens
-            let escapedValue = value.replacing("\"", with: "\\\"")
-            
-            // Quote all values except pure numeric tokens (e.g., size parameter per RFC 2183)
-            let isPureNumeric = !value.isEmpty && value.allSatisfy { $0.isASCIIDigit }
-            
-            let quotedValue = isPureNumeric ? value : "\"\(escapedValue)\""
-            result += "; \(key)=\(quotedValue)"
+
+        let params = contentDisposition.parameters
+
+        // Add standard parameters in RFC-defined order
+        if let filename = params.filename {
+            result += "; filename=\"\(filename.value.replacing("\"", with: "\\\""))\""
         }
-        
+
+        if let creationDate = params.creationDate {
+            result += "; creation-date=\"\(RFC_5322.DateTime.Formatter.format(creationDate))\""
+        }
+
+        if let modificationDate = params.modificationDate {
+            result += "; modification-date=\"\(RFC_5322.DateTime.Formatter.format(modificationDate))\""
+        }
+
+        if let readDate = params.readDate {
+            result += "; read-date=\"\(RFC_5322.DateTime.Formatter.format(readDate))\""
+        }
+
+        if let size = params.size {
+            // Size is unquoted per RFC 2183
+            result += "; size=\(size.bytes)"
+        }
+
+        // RFC 7578 extension
+        if let name = params.name {
+            result += "; name=\"\(name.replacing("\"", with: "\\\""))\""
+        }
+
+        // Extension parameters in sorted order for stability
+        for (key, value) in params.extensionParameters.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+            let escapedValue = value.replacing("\"", with: "\\\"")
+            result += "; \(key.rawValue)=\"\(escapedValue)\""
+        }
+
         self = result
     }
 }
