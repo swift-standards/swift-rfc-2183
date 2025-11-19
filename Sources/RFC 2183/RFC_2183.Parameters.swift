@@ -1,6 +1,6 @@
 import Foundation
-import RFC_2045
-import RFC_5322
+public import RFC_2045
+public import RFC_5322
 
 extension RFC_2183 {
     /// Structured parameters for Content-Disposition headers.

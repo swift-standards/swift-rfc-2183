@@ -1,5 +1,5 @@
 import Foundation
-import RFC_2045
+public import RFC_2045
 
 // RFC 2183 uses RFC 2045 parameter name handling
 extension RFC_2183 {

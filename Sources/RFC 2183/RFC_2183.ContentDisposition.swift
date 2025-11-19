@@ -1,6 +1,6 @@
 import INCITS_4_1986
-import RFC_2045
-import RFC_5322
+public import RFC_2045
+public import RFC_5322
 
 extension RFC_2183 {
     /// Content-Disposition header field
