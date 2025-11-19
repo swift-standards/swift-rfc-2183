@@ -1,5 +1,4 @@
 import Testing
-import Foundation
 @testable import RFC_2183
 
 @Suite("Content-Disposition Tests")

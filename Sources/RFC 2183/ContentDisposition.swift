@@ -1,4 +1,4 @@
-import Foundation
+import INCITS_4_1986
 
 /// RFC 2183 namespace
 public enum RFC_2183 {}
@@ -72,7 +72,7 @@ extension RFC_2183 {
             }
 
             self.type = DispositionType(
-                rawValue: String(typeString).trimmingCharacters(in: .whitespaces)
+                rawValue: String(typeString).trimming(.whitespaces)
             )
 
             // Parse parameters if present
@@ -87,14 +87,14 @@ extension RFC_2183 {
                         continue
                     }
 
-                    let key = String(keyValue[0]).trimmingCharacters(in: .whitespaces).lowercased()
-                    var value = String(keyValue[1]).trimmingCharacters(in: .whitespaces)
+                    let key = String(keyValue[0]).trimming(.whitespaces).lowercased()
+                    var value = String(keyValue[1]).trimming(.whitespaces)
 
                     // Remove quotes if present
                     if value.hasPrefix("\"") && value.hasSuffix("\"") {
                         value = String(value.dropFirst().dropLast())
                         // Unescape quotes per RFC 2183
-                        value = value.replacingOccurrences(of: "\\\"", with: "\"")
+                        value = value.replacing("\\\"", with: "\"")
                     }
 
                     params[key] = value
@@ -113,7 +113,7 @@ extension RFC_2183 {
             for (key, value) in parameters.sorted(by: { $0.key < $1.key }) {
                 // Per RFC 2183 Section 2, parameter values SHOULD be quoted
                 // Certain parameters like size may be unquoted tokens
-                let escapedValue = value.replacingOccurrences(of: "\"", with: "\\\"")
+                let escapedValue = value.replacing("\"", with: "\\\"")
 
                 // Quote all values except pure numeric tokens (e.g., size parameter)
                 let isPureNumeric = !value.isEmpty && value.allSatisfy { $0.isNumber }
@@ -331,7 +331,7 @@ extension RFC_2183.ContentDisposition {
 
 extension RFC_2183 {
     /// Errors that can occur when parsing Content-Disposition headers
-    public enum Error: Swift.Error, Hashable, Sendable, LocalizedError {
+    public enum Error: Swift.Error, Hashable, Sendable {
         /// Invalid Content-Disposition format
         case invalidFormat(String)
 

@@ -16,11 +16,15 @@ let package = Package(
             targets: ["RFC 2183"]
         )
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/swift-standards/swift-incits-4-1986.git", from: "0.0.1")
+    ],
     targets: [
         .target(
             name: "RFC 2183",
-            dependencies: []
+            dependencies: [
+                .product(name: "INCITS 4 1986", package: "swift-incits-4-1986")
+            ]
         ),
         .testTarget(
             name: "RFC 2183 Tests",
