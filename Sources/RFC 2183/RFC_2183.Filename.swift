@@ -77,23 +77,3 @@ extension RFC_2183.Filename: CustomStringConvertible {
         value
     }
 }
-
-extension RFC_2183.Filename: LosslessStringConvertible {
-    public init?(_ description: String) {
-        try? self.init(description)
-    }
-}
-
-extension RFC_2183.Filename: ExpressibleByStringLiteral {
-    public init(stringLiteral value: String) {
-        do {
-            try self.init(value)
-        } catch {
-            preconditionFailure("""
-                Invalid filename literal: \(value)
-                Error: \(error)
-                Use RFC_2183.Filename.init(_:) for runtime values.
-                """)
-        }
-    }
-}

@@ -1,4 +1,5 @@
 import INCITS_4_1986
+import RFC_2045
 import RFC_5322
 
 extension RFC_2183 {
@@ -108,12 +109,12 @@ extension RFC_2183.ContentDisposition {
     }
 
     /// Parse raw string parameters into typed Parameters struct.
-    private static func parseParameters(_ raw: [String: String]) throws -> Parameters {
-        var params = Parameters()
+    private static func parseParameters(_ raw: [String: String]) throws -> RFC_2183.Parameters {
+        var params = RFC_2183.Parameters()
 
         // Parse standard parameters with validation
         if let filenameStr = raw["filename"] {
-            params.filename = try? Filename(filenameStr)
+            params.filename = try? RFC_2183.Filename(filenameStr)
         }
 
         if let creationDateStr = raw["creation-date"] {
@@ -129,7 +130,7 @@ extension RFC_2183.ContentDisposition {
         }
 
         if let sizeStr = raw["size"] {
-            params.size = try? Size(bytes: Int(sizeStr) ?? -1)
+            params.size = try? RFC_2183.Size(bytes: Int(sizeStr) ?? -1)
         }
 
         // RFC 7578 extension
@@ -146,7 +147,7 @@ extension RFC_2183.ContentDisposition {
         ]
 
         for (key, value) in raw where !knownKeys.contains(key) {
-            params.extensionParameters[ParameterName(rawValue: key)] = value
+            params.extensionParameters[RFC_2045.Parameter.Name(rawValue: key)] = value
         }
 
         return params
@@ -154,6 +155,71 @@ extension RFC_2183.ContentDisposition {
 }
 
 // MARK: - Disposition Type
+
+// MARK: - Convenience Accessors
+
+extension RFC_2183.ContentDisposition {
+    /// The filename parameter (RFC 2183 Section 2.3)
+    ///
+    /// Convenience accessor that delegates to `parameters.filename`.
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// let disposition = try RFC_2183.ContentDisposition(
+    ///     parsing: "attachment; filename=\"document.pdf\""
+    /// )
+    /// print(disposition.filename?.value) // "document.pdf"
+    /// ```
+    public var filename: RFC_2183.Filename? {
+        parameters.filename
+    }
+
+    /// The creation-date parameter (RFC 2183 Section 2.4)
+    ///
+    /// Convenience accessor that delegates to `parameters.creationDate`.
+    ///
+    /// Date-time when the file was created (RFC 5322 format).
+    public var creationDate: RFC_5322.DateTime? {
+        parameters.creationDate
+    }
+
+    /// The modification-date parameter (RFC 2183 Section 2.5)
+    ///
+    /// Convenience accessor that delegates to `parameters.modificationDate`.
+    ///
+    /// Date-time when the file was last modified (RFC 5322 format).
+    public var modificationDate: RFC_5322.DateTime? {
+        parameters.modificationDate
+    }
+
+    /// The read-date parameter (RFC 2183 Section 2.6)
+    ///
+    /// Convenience accessor that delegates to `parameters.readDate`.
+    ///
+    /// Date-time when the file was last read (RFC 5322 format).
+    public var readDate: RFC_5322.DateTime? {
+        parameters.readDate
+    }
+
+    /// The size parameter (RFC 2183 Section 2.7)
+    ///
+    /// Convenience accessor that delegates to `parameters.size`.
+    ///
+    /// Approximate size of the file in octets.
+    public var size: RFC_2183.Size? {
+        parameters.size
+    }
+
+    /// The name parameter (RFC 7578 Section 4.2)
+    ///
+    /// Convenience accessor that delegates to `parameters.name`.
+    ///
+    /// Field name for multipart/form-data submissions.
+    public var name: String? {
+        parameters.name
+    }
+}
 
 // MARK: - Convenience Constructors
 
@@ -192,15 +258,15 @@ extension RFC_2183.ContentDisposition {
     /// // Content-Disposition: attachment; filename="document.pdf"; size=1024
     /// ```
     public static func attachment(
-        filename: Filename? = nil,
-        size: Size? = nil,
+        filename: RFC_2183.Filename? = nil,
+        size: RFC_2183.Size? = nil,
         creationDate: RFC_5322.DateTime? = nil,
         modificationDate: RFC_5322.DateTime? = nil,
         readDate: RFC_5322.DateTime? = nil
     ) -> Self {
         Self(
             type: .attachment,
-            parameters: Parameters(
+            parameters: .init(
                 filename: filename,
                 creationDate: creationDate,
                 modificationDate: modificationDate,
@@ -231,10 +297,10 @@ extension RFC_2183.ContentDisposition {
     /// )
     /// // Content-Disposition: form-data; name="avatar"; filename="photo.jpg"
     /// ```
-    public static func formData(name: String, filename: Filename? = nil) -> Self {
+    public static func formData(name: String, filename: RFC_2183.Filename? = nil) -> Self {
         Self(
             type: .formData,
-            parameters: Parameters(
+            parameters: .init(
                 filename: filename,
                 name: name
             )

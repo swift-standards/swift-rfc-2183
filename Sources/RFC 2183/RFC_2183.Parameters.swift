@@ -1,4 +1,5 @@
 import Foundation
+import RFC_2045
 import RFC_5322
 
 extension RFC_2183 {

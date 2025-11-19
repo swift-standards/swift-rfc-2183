@@ -18,6 +18,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/swift-standards/swift-incits-4-1986.git", from: "0.0.1"),
+        .package(url: "https://github.com/swift-standards/swift-rfc-2045.git", from: "0.1.0"),
         .package(url: "https://github.com/swift-standards/swift-rfc-5322.git", from: "0.1.0")
     ],
     targets: [
@@ -25,6 +26,7 @@ let package = Package(
             name: "RFC 2183",
             dependencies: [
                 .product(name: "INCITS 4 1986", package: "swift-incits-4-1986"),
+                .product(name: "RFC 2045", package: "swift-rfc-2045"),
                 .product(name: "RFC 5322", package: "swift-rfc-5322"),
             ]
         ),
