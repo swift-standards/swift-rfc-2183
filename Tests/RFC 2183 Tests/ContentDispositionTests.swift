@@ -1,44 +1,44 @@
 import Testing
 @testable import RFC_2183
 
-@Suite("Content-Disposition Tests")
-struct ContentDispositionTests {
+@Suite
+struct `Content-Disposition Tests` {
 
     // MARK: - Basic Parsing Tests
 
-    @Test("Parse inline disposition")
-    func parseInline() throws {
+    @Test
+    func `Parse inline disposition`() throws {
         let disposition = try RFC_2183.ContentDisposition(parsing: "inline")
         #expect(disposition.type == .inline)
         #expect(disposition.parameters.isEmpty)
-        #expect(disposition.headerValue == "inline")
+        #expect(String(disposition) == "inline")
     }
 
-    @Test("Parse attachment without filename")
-    func parseAttachmentWithoutFilename() throws {
+    @Test
+    func `Parse attachment without filename`() throws {
         let disposition = try RFC_2183.ContentDisposition(parsing: "attachment")
         #expect(disposition.type == .attachment)
         #expect(disposition.parameters.isEmpty)
         #expect(disposition.filename == nil)
     }
 
-    @Test("Parse attachment with filename")
-    func parseAttachmentWithFilename() throws {
+    @Test
+    func `Parse attachment with filename`() throws {
         let disposition = try RFC_2183.ContentDisposition(parsing: "attachment; filename=\"document.pdf\"")
         #expect(disposition.type == .attachment)
         #expect(disposition.filename == "document.pdf")
-        #expect(disposition.headerValue == "attachment; filename=\"document.pdf\"")
+        #expect(String(disposition) == "attachment; filename=\"document.pdf\"")
     }
 
-    @Test("Parse form-data with name")
-    func parseFormDataWithName() throws {
+    @Test
+    func `Parse form-data with name`() throws {
         let disposition = try RFC_2183.ContentDisposition(parsing: "form-data; name=\"username\"")
         #expect(disposition.type == .formData)
         #expect(disposition.name == "username")
     }
 
-    @Test("Parse form-data with name and filename")
-    func parseFormDataWithNameAndFilename() throws {
+    @Test
+    func `Parse form-data with name and filename`() throws {
         let disposition = try RFC_2183.ContentDisposition(parsing: "form-data; name=\"avatar\"; filename=\"photo.jpg\"")
         #expect(disposition.type == .formData)
         #expect(disposition.name == "avatar")
@@ -47,8 +47,8 @@ struct ContentDispositionTests {
 
     // MARK: - Parameter Tests
 
-    @Test("Parse size parameter")
-    func parseSizeParameter() throws {
+    @Test
+    func `Parse size parameter`() throws {
         let disposition = try RFC_2183.ContentDisposition(
             parsing: "attachment; filename=\"data.bin\"; size=1048576"
         )
@@ -56,8 +56,8 @@ struct ContentDispositionTests {
         #expect(disposition.size == 1048576)
     }
 
-    @Test("Parse date parameters")
-    func parseDateParameters() throws {
+    @Test
+    func `Parse date parameters`() throws {
         let disposition = try RFC_2183.ContentDisposition(
             parsing: "attachment; filename=\"doc.pdf\"; creation-date=\"Mon, 01 Jan 2024 12:00:00 GMT\""
         )
@@ -67,25 +67,25 @@ struct ContentDispositionTests {
 
     // MARK: - Escaping Tests
 
-    @Test("Parse filename with escaped quotes")
-    func parseFilenameWithEscapedQuotes() throws {
+    @Test
+    func `Parse filename with escaped quotes`() throws {
         let disposition = try RFC_2183.ContentDisposition(
             parsing: #"attachment; filename="file\"with\"quotes.txt""#
         )
         #expect(disposition.filename == #"file"with"quotes.txt"#)
     }
 
-    @Test("Render filename with quotes - escapes them")
-    func renderFilenameWithQuotes() {
+    @Test
+    func `Render filename with quotes - escapes them`() {
         let disposition = RFC_2183.ContentDisposition(
             type: .attachment,
             parameters: ["filename": #"file"with"quotes.txt"#]
         )
-        #expect(disposition.headerValue == #"attachment; filename="file\"with\"quotes.txt""#)
+        #expect(String(disposition) == #"attachment; filename="file\"with\"quotes.txt""#)
     }
 
-    @Test("Parse filename with spaces")
-    func parseFilenameWithSpaces() throws {
+    @Test
+    func `Parse filename with spaces`() throws {
         let disposition = try RFC_2183.ContentDisposition(
             parsing: "attachment; filename=\"my document.pdf\""
         )
@@ -94,23 +94,23 @@ struct ContentDispositionTests {
 
     // MARK: - Convenience Constructor Tests
 
-    @Test("Create inline using convenience")
-    func createInlineConvenience() {
+    @Test
+    func `Create inline using convenience`() {
         let disposition = RFC_2183.ContentDisposition.inline()
         #expect(disposition.type == .inline)
-        #expect(disposition.headerValue == "inline")
+        #expect(String(disposition) == "inline")
     }
 
-    @Test("Create attachment using convenience")
-    func createAttachmentConvenience() {
+    @Test
+    func `Create attachment using convenience`() {
         let disposition = RFC_2183.ContentDisposition.attachment(filename: "report.pdf")
         #expect(disposition.type == .attachment)
         #expect(disposition.filename == "report.pdf")
-        #expect(disposition.headerValue == "attachment; filename=\"report.pdf\"")
+        #expect(String(disposition) == "attachment; filename=\"report.pdf\"")
     }
 
-    @Test("Create form-data using convenience")
-    func createFormDataConvenience() {
+    @Test
+    func `Create form-data using convenience`() {
         let disposition = RFC_2183.ContentDisposition.formData(name: "avatar", filename: "photo.jpg")
         #expect(disposition.type == .formData)
         #expect(disposition.name == "avatar")
@@ -119,39 +119,39 @@ struct ContentDispositionTests {
 
     // MARK: - String Literal Tests
 
-    @Test("Create from string literal")
-    func createFromStringLiteral() {
+    @Test
+    func `Create from string literal`() {
         let disposition: RFC_2183.ContentDisposition = "attachment; filename=\"test.txt\""
         #expect(disposition.type == .attachment)
         #expect(disposition.filename == "test.txt")
     }
 
-    @Test("Create disposition type from string literal")
-    func createDispositionTypeFromStringLiteral() {
+    @Test
+    func `Create disposition type from string literal`() {
         let type: RFC_2183.DispositionType = "inline"
         #expect(type == .inline)
     }
 
     // MARK: - Roundtrip Tests
 
-    @Test("Roundtrip parse and render - simple")
-    func roundtripSimple() throws {
+    @Test
+    func `Roundtrip parse and render - simple`() throws {
         let original = "attachment; filename=\"document.pdf\""
         let disposition = try RFC_2183.ContentDisposition(parsing: original)
-        #expect(disposition.headerValue == original)
+        #expect(String(disposition) == original)
     }
 
-    @Test("Roundtrip parse and render - complex")
-    func roundtripComplex() throws {
+    @Test
+    func `Roundtrip parse and render - complex`() throws {
         let original = "attachment; filename=\"data.bin\"; size=1024"
         let disposition = try RFC_2183.ContentDisposition(parsing: original)
-        #expect(disposition.headerValue == original)
+        #expect(String(disposition) == original)
     }
 
     // MARK: - Custom Disposition Types
 
-    @Test("Custom disposition type")
-    func customDispositionType() throws {
+    @Test
+    func `Custom disposition type`() throws {
         let disposition = try RFC_2183.ContentDisposition(parsing: "x-custom; param=value")
         #expect(disposition.type.rawValue == "x-custom")
         #expect(disposition.parameters["param"] == "value")
@@ -159,14 +159,14 @@ struct ContentDispositionTests {
 
     // MARK: - Edge Cases
 
-    @Test("Empty filename parameter")
-    func emptyFilenameParameter() throws {
+    @Test
+    func `Empty filename parameter`() throws {
         let disposition = try RFC_2183.ContentDisposition(parsing: "attachment; filename=\"\"")
         #expect(disposition.filename == "")
     }
 
-    @Test("Whitespace handling")
-    func whitespaceHandling() throws {
+    @Test
+    func `Whitespace handling`() throws {
         let disposition = try RFC_2183.ContentDisposition(
             parsing: "attachment  ;  filename=\"doc.pdf\"  "
         )

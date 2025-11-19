@@ -3,6 +3,8 @@ import INCITS_4_1986
 /// RFC 2183 namespace
 public enum RFC_2183 {}
 
+
+
 extension RFC_2183 {
     /// Content-Disposition header field
     ///
@@ -42,10 +44,10 @@ extension RFC_2183 {
     public struct ContentDisposition: Hashable, Sendable, Codable {
         /// The disposition type (inline, attachment, etc.)
         public let type: DispositionType
-
+        
         /// Optional parameters (filename, size, dates, etc.)
         public let parameters: [String: String]
-
+        
         /// Creates a new Content-Disposition header
         ///
         /// - Parameters:
@@ -58,72 +60,54 @@ extension RFC_2183 {
             self.type = type
             self.parameters = parameters
         }
+    }
+}
 
-        /// Parses a Content-Disposition header value
-        ///
-        /// - Parameter headerValue: The header value (e.g., "attachment; filename=\"file.pdf\"")
-        /// - Throws: `RFC_2183.Error.invalidFormat` if the value is malformed
-        public init(parsing headerValue: String) throws {
-            let components = headerValue.split(separator: ";", maxSplits: 1)
-
-            // Parse disposition type
-            guard let typeString = components.first else {
-                throw RFC_2183.Error.invalidFormat(headerValue)
-            }
-
-            self.type = DispositionType(
-                rawValue: String(typeString).trimming(.whitespaces)
-            )
-
-            // Parse parameters if present
-            var params: [String: String] = [:]
-            if components.count > 1 {
-                let paramString = String(components[1])
-                let paramPairs = paramString.split(separator: ";")
-
-                for pair in paramPairs {
-                    let keyValue = pair.split(separator: "=", maxSplits: 1)
-                    guard keyValue.count == 2 else {
-                        continue
-                    }
-
-                    let key = String(keyValue[0]).trimming(.whitespaces).lowercased()
-                    var value = String(keyValue[1]).trimming(.whitespaces)
-
-                    // Remove quotes if present
-                    if value.hasPrefix("\"") && value.hasSuffix("\"") {
-                        value = String(value.dropFirst().dropLast())
-                        // Unescape quotes per RFC 2183
-                        value = value.replacing("\\\"", with: "\"")
-                    }
-
-                    params[key] = value
+extension RFC_2183.ContentDisposition {
+    
+    /// Parses a Content-Disposition header value
+    ///
+    /// - Parameter headerValue: The header value (e.g., "attachment; filename=\"file.pdf\"")
+    /// - Throws: `RFC_2183.Error.invalidFormat` if the value is malformed
+    public init(parsing headerValue: String) throws {
+        let components = headerValue.split(separator: ";", maxSplits: 1)
+        
+        // Parse disposition type
+        guard let typeString = components.first else {
+            throw RFC_2183.Error.invalidFormat(headerValue)
+        }
+        
+        self.type = RFC_2183.DispositionType(
+            rawValue: String(typeString).trimming(.whitespaces)
+        )
+        
+        // Parse parameters if present
+        var params: [String: String] = [:]
+        if components.count > 1 {
+            let paramString = String(components[1])
+            let paramPairs = paramString.split(separator: ";")
+            
+            for pair in paramPairs {
+                let keyValue = pair.split(separator: "=", maxSplits: 1)
+                guard keyValue.count == 2 else {
+                    continue
                 }
+                
+                let key = String(keyValue[0]).trimming(.whitespaces).lowercased()
+                var value = String(keyValue[1]).trimming(.whitespaces)
+                
+                // Remove quotes if present
+                if value.hasPrefix("\"") && value.hasSuffix("\"") {
+                    value = String(value.dropFirst().dropLast())
+                    // Unescape quotes per RFC 2183
+                    value = value.replacing("\\\"", with: "\"")
+                }
+                
+                params[key] = value
             }
-
-            self.parameters = params
         }
-
-        /// The complete header value
-        ///
-        /// Example: `"attachment; filename=\"document.pdf\""`
-        public var headerValue: String {
-            var result = type.rawValue
-
-            for (key, value) in parameters.sorted(by: { $0.key < $1.key }) {
-                // Per RFC 2183 Section 2, parameter values SHOULD be quoted
-                // Certain parameters like size may be unquoted tokens
-                let escapedValue = value.replacing("\"", with: "\\\"")
-
-                // Quote all values except pure numeric tokens (e.g., size parameter per RFC 2183)
-                let isPureNumeric = !value.isEmpty && value.allSatisfy { $0.isASCIIDigit }
-
-                let quotedValue = isPureNumeric ? value : "\"\(escapedValue)\""
-                result += "; \(key)=\(quotedValue)"
-            }
-
-            return result
-        }
+        
+        self.parameters = params
     }
 }
 
@@ -156,28 +140,28 @@ extension RFC_2183 {
     /// > automatically and requires some form of action from the user to view it.
     public struct DispositionType: RawRepresentable, Hashable, Sendable, Codable {
         public let rawValue: String
-
+        
         /// Creates a disposition type
         ///
         /// - Parameter rawValue: The disposition type name (case-insensitive)
         public init(rawValue: String) {
             self.rawValue = rawValue.lowercased()
         }
-
+        
         // MARK: - Standard Disposition Types (RFC 2183)
-
+        
         /// Content should be displayed inline
         ///
         /// **RFC 2183 Section 2.1**: Display automatically upon message display
         public static let inline = DispositionType(rawValue: "inline")
-
+        
         /// Content should be treated as an attachment
         ///
         /// **RFC 2183 Section 2.2**: Not displayed automatically, requires user action
         public static let attachment = DispositionType(rawValue: "attachment")
-
+        
         // MARK: - Extension Types
-
+        
         /// Form data (RFC 7578)
         ///
         /// Used in multipart/form-data submissions with field names and filenames
@@ -204,28 +188,28 @@ extension RFC_2183.ContentDisposition {
     public var filename: String? {
         parameters["filename"]
     }
-
+    
     /// The creation-date parameter (RFC 2183 Section 2.4)
     ///
     /// Date-time when the file was created (RFC 822 format).
     public var creationDate: String? {
         parameters["creation-date"]
     }
-
+    
     /// The modification-date parameter (RFC 2183 Section 2.5)
     ///
     /// Date-time when the file was last modified (RFC 822 format).
     public var modificationDate: String? {
         parameters["modification-date"]
     }
-
+    
     /// The read-date parameter (RFC 2183 Section 2.6)
     ///
     /// Date-time when the file was last read (RFC 822 format).
     public var readDate: String? {
         parameters["read-date"]
     }
-
+    
     /// The size parameter (RFC 2183 Section 2.7)
     ///
     /// Approximate size of the file in octets.
@@ -245,7 +229,7 @@ extension RFC_2183.ContentDisposition {
     public var size: Int? {
         parameters["size"].flatMap(Int.init)
     }
-
+    
     /// The name parameter (form-data extension from RFC 7578)
     ///
     /// Form field name in multipart/form-data submissions.
@@ -280,7 +264,7 @@ extension RFC_2183.ContentDisposition {
     public static func inline() -> Self {
         Self(type: .inline)
     }
-
+    
     /// Creates an attachment Content-Disposition
     ///
     /// - Parameter filename: Optional filename parameter
@@ -299,7 +283,7 @@ extension RFC_2183.ContentDisposition {
         }
         return Self(type: .attachment, parameters: params)
     }
-
+    
     /// Creates a form-data Content-Disposition
     ///
     /// - Parameters:
@@ -334,7 +318,7 @@ extension RFC_2183 {
     public enum Error: Swift.Error, Hashable, Sendable {
         /// Invalid Content-Disposition format
         case invalidFormat(String)
-
+        
         public var errorDescription: String? {
             switch self {
             case .invalidFormat(let value):
@@ -347,7 +331,7 @@ extension RFC_2183 {
 // MARK: - Protocol Conformances
 
 extension RFC_2183.ContentDisposition: CustomStringConvertible {
-    public var description: String { headerValue }
+    public var description: String { .init(self) }
 }
 
 extension RFC_2183.ContentDisposition: ExpressibleByStringLiteral {
