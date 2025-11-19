@@ -115,8 +115,8 @@ extension RFC_2183 {
                 // Certain parameters like size may be unquoted tokens
                 let escapedValue = value.replacing("\"", with: "\\\"")
 
-                // Quote all values except pure numeric tokens (e.g., size parameter)
-                let isPureNumeric = !value.isEmpty && value.allSatisfy { $0.isNumber }
+                // Quote all values except pure numeric tokens (e.g., size parameter per RFC 2183)
+                let isPureNumeric = !value.isEmpty && value.allSatisfy { $0.isASCIIDigit }
 
                 let quotedValue = isPureNumeric ? value : "\"\(escapedValue)\""
                 result += "; \(key)=\(quotedValue)"
