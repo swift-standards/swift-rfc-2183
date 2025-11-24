@@ -1,5 +1,5 @@
 import INCITS_4_1986
-public import RFC_2045
+import RFC_2045
 public import RFC_5322
 
 extension RFC_2183 {
@@ -75,7 +75,7 @@ extension RFC_2183.ContentDisposition {
         }
 
         self.type = RFC_2183.DispositionType(
-            rawValue: String(typeString).trimming(.whitespaces)
+            rawValue: String(typeString).trimming(.ascii.whitespaces)
         )
 
         // Parse parameters if present
@@ -90,8 +90,8 @@ extension RFC_2183.ContentDisposition {
                     continue
                 }
 
-                let key = String(keyValue[0]).trimming(.whitespaces).lowercased()
-                var value = String(keyValue[1]).trimming(.whitespaces)
+                let key = String(keyValue[0]).trimming(.ascii.whitespaces).lowercased()
+                var value = String(keyValue[1]).trimming(.ascii.whitespaces)
 
                 // Remove quotes if present
                 if value.hasPrefix("\"") && value.hasSuffix("\"") {

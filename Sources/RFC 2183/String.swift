@@ -6,8 +6,8 @@
 //
 
 import INCITS_4_1986
-public import RFC_5322
-public import RFC_2045
+import RFC_5322
+import RFC_2045
 
 extension String {
     public init(

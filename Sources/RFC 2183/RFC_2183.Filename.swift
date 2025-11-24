@@ -35,12 +35,13 @@ extension RFC_2183 {
         /// - Throws: `RFC_2183.Error` if validation fails.
         public init(_ value: String) throws {
             // Validate ASCII using INCITS 4-1986
-            guard let asciiBytes = value.asciiBytes else {
+            
+            guard let asciiBytes = [UInt8](ascii: value) else {
                 throw RFC_2183.Error.filenameNotASCII
             }
 
             // Check for control characters
-            guard !asciiBytes.contains(where: \.isASCIIControl) else {
+            guard !asciiBytes.contains(where: \.ascii.isControl) else {
                 throw RFC_2183.Error.filenameContainsControlCharacters
             }
 
