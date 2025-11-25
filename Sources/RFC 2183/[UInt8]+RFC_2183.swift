@@ -95,7 +95,7 @@ extension [UInt8] {
             self.append(contentsOf: "creation-date".utf8)
             self.append(.ascii.equalsSign) // "="
             self.append(.ascii.quotationMark) // "\""
-            let dateString = RFC_5322.DateTime.Formatter.format(creationDate)
+            let dateString = String(creationDate)
             self.append(contentsOf: dateString.utf8)
             self.append(.ascii.quotationMark) // "\""
         }
@@ -106,7 +106,7 @@ extension [UInt8] {
             self.append(contentsOf: "modification-date".utf8)
             self.append(.ascii.equalsSign) // "="
             self.append(.ascii.quotationMark) // "\""
-            let dateString = RFC_5322.DateTime.Formatter.format(modificationDate)
+            let dateString = String(modificationDate)
             self.append(contentsOf: dateString.utf8)
             self.append(.ascii.quotationMark) // "\""
         }
@@ -117,7 +117,7 @@ extension [UInt8] {
             self.append(contentsOf: "read-date".utf8)
             self.append(.ascii.equalsSign) // "="
             self.append(.ascii.quotationMark) // "\""
-            let dateString = RFC_5322.DateTime.Formatter.format(readDate)
+            let dateString = String(readDate)
             self.append(contentsOf: dateString.utf8)
             self.append(.ascii.quotationMark) // "\""
         }

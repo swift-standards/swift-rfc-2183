@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  RFC_2183.DispositionType.swift
 //  swift-rfc-2183
 //
 //  Created by Coen ten Thije Boonkkamp on 19/11/2025.
@@ -39,24 +39,27 @@ extension RFC_2183 {
         public init(rawValue: String) {
             self.rawValue = rawValue.lowercased()
         }
-        
-        // MARK: - Standard Disposition Types (RFC 2183)
-        
-        /// Content should be displayed inline
-        ///
-        /// **RFC 2183 Section 2.1**: Display automatically upon message display
-        public static let inline = DispositionType(rawValue: "inline")
-        
-        /// Content should be treated as an attachment
-        ///
-        /// **RFC 2183 Section 2.2**: Not displayed automatically, requires user action
-        public static let attachment = DispositionType(rawValue: "attachment")
-        
-        // MARK: - Extension Types
-        
-        /// Form data (RFC 7578)
-        ///
-        /// Used in multipart/form-data submissions with field names and filenames
-        public static let formData = DispositionType(rawValue: "form-data")
     }
+}
+
+extension RFC_2183.DispositionType {
+    
+    // MARK: - Standard Disposition Types (RFC 2183)
+    
+    /// Content should be displayed inline
+    ///
+    /// **RFC 2183 Section 2.1**: Display automatically upon message display
+    public static let inline = Self(rawValue: "inline")
+    
+    /// Content should be treated as an attachment
+    ///
+    /// **RFC 2183 Section 2.2**: Not displayed automatically, requires user action
+    public static let attachment = Self(rawValue: "attachment")
+    
+    // MARK: - Extension Types
+    
+    /// Form data (RFC 7578)
+    ///
+    /// Used in multipart/form-data submissions with field names and filenames
+    public static let formData = Self(rawValue: "form-data")
 }

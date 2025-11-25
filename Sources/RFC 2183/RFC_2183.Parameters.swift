@@ -1,4 +1,10 @@
-import Foundation
+//
+//  RFC_2183.Parameters.swift
+//  swift-rfc-2183
+//
+//  Created by Coen ten Thije Boonkkamp on 19/11/2025.
+//
+
 public import RFC_2045
 public import RFC_5322
 
@@ -26,7 +32,7 @@ extension RFC_2183 {
     /// var params = RFC_2183.Parameters()
     /// params.filename = try Filename("document.pdf")
     /// params.size = try Size(bytes: 1024)
-    /// params.creationDate = try RFC_5322.DateTime(parsing: "Mon, 01 Jan 2024 12:00:00 +0000")
+    /// params.creationDate = try RFC_5322.DateTime("Mon, 01 Jan 2024 12:00:00 +0000")
     /// ```
     public struct Parameters: Hashable, Sendable, Codable {
         // MARK: - RFC 2183 Standard Parameters
@@ -73,7 +79,7 @@ extension RFC_2183 {
 
         // MARK: - Initialization
 
-        /// Creates an empty parameter set.
+        /// Creates a parameter set with the specified values.
         public init(
             filename: Filename? = nil,
             creationDate: RFC_5322.DateTime? = nil,

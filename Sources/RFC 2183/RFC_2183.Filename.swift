@@ -1,5 +1,11 @@
-import Foundation
-import INCITS_4_1986
+//
+//  RFC_2183.Filename.swift
+//  swift-rfc-2183
+//
+//  Created by Coen ten Thije Boonkkamp on 19/11/2025.
+//
+
+public import INCITS_4_1986
 
 extension RFC_2183 {
     /// Validated filename for Content-Disposition filename parameter.
@@ -29,37 +35,13 @@ extension RFC_2183 {
         /// The validated filename string.
         public let value: String
 
-        /// Creates a validated filename.
+        /// Creates a filename WITHOUT validation
         ///
-        /// - Parameter value: The filename string to validate.
-        /// - Throws: `RFC_2183.Error` if validation fails.
-        public init(_ value: String) throws {
-            // Validate ASCII using INCITS 4-1986
-            
-            guard let asciiBytes = [UInt8](ascii: value) else {
-                throw RFC_2183.Error.filenameNotASCII
-            }
-
-            // Check for control characters
-            guard !asciiBytes.contains(where: \.ascii.isControl) else {
-                throw RFC_2183.Error.filenameContainsControlCharacters
-            }
-
-            // Check for path traversal
-            guard !value.contains("..") else {
-                throw RFC_2183.Error.filenameContainsPathTraversal
-            }
-
-            // Check for path separators
-            guard !value.contains("/"), !value.contains("\\") else {
-                throw RFC_2183.Error.filenameContainsPathSeparator
-            }
-
-            // Check for absolute path indicators
-            guard !value.hasPrefix("/"), !value.hasPrefix("\\") else {
-                throw RFC_2183.Error.filenameIsAbsolutePath
-            }
-
+        /// **Warning**: Bypasses all RFC validation.
+        /// Only use with compile-time constants or pre-validated values.
+        ///
+        /// - Parameter value: The raw value (unchecked)
+        init(__unchecked value: String) {
             self.value = value
         }
 
@@ -73,8 +55,114 @@ extension RFC_2183 {
     }
 }
 
-extension RFC_2183.Filename: CustomStringConvertible {
-    public var description: String {
-        value
+// MARK: - UInt8.ASCII.Serializing
+
+extension RFC_2183.Filename: UInt8.ASCII.Serializing {
+    public static let serialize: @Sendable (Self) -> [UInt8] = [UInt8].init
+
+    /// Parses a filename from canonical byte representation (CANONICAL PRIMITIVE)
+    ///
+    /// This is the primitive parser that works at the byte level.
+    /// RFC 2183 filenames are ASCII-only.
+    ///
+    /// ## Category Theory
+    ///
+    /// This is the fundamental parsing transformation:
+    /// - **Domain**: [UInt8] (ASCII bytes)
+    /// - **Codomain**: RFC_2183.Filename (structured data)
+    ///
+    /// String-based parsing is derived as composition:
+    /// ```
+    /// String → [UInt8] (UTF-8 bytes) → Filename
+    /// ```
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// let bytes = Array("document.pdf".utf8)
+    /// let filename = try RFC_2183.Filename(ascii: bytes)
+    /// ```
+    ///
+    /// - Parameter bytes: The ASCII byte representation of the filename
+    /// - Throws: `RFC_2183.Filename.Error` if the bytes are malformed
+    public init<Bytes: Collection>(ascii bytes: Bytes, in context: Void) throws(Error)
+    where Bytes.Element == UInt8 {
+        // Empty check
+        guard !bytes.isEmpty else {
+            throw Error.empty
+        }
+
+        // Check for control characters and non-ASCII
+        for byte in bytes {
+            guard byte.ascii.isVisible || byte == .ascii.space else {
+                if byte > 127 {
+                    throw Error.notASCII(String(decoding: bytes, as: UTF8.self))
+                }
+                throw Error.containsControlCharacters(String(decoding: bytes, as: UTF8.self), byte: byte)
+            }
+        }
+
+        let value = String(decoding: bytes, as: UTF8.self)
+
+        // Check for path traversal
+        guard !value.contains("..") else {
+            throw Error.containsPathTraversal(value)
+        }
+
+        // Check for path separators
+        guard !value.contains("/"), !value.contains("\\") else {
+            throw Error.containsPathSeparator(value)
+        }
+
+        // Check for absolute path indicators
+        guard !value.hasPrefix("/"), !value.hasPrefix("\\") else {
+            throw Error.isAbsolutePath(value)
+        }
+
+        self.init(__unchecked: value)
     }
 }
+
+// MARK: - Byte Serialization
+
+extension [UInt8] {
+    /// Creates ASCII byte representation of an RFC 2183 filename
+    ///
+    /// This is the canonical serialization of filenames to bytes.
+    /// RFC 2183 filenames are ASCII-only by definition.
+    ///
+    /// ## Category Theory
+    ///
+    /// This is the most universal serialization (natural transformation):
+    /// - **Domain**: RFC_2183.Filename (structured data)
+    /// - **Codomain**: [UInt8] (ASCII bytes)
+    ///
+    /// String representation is derived as composition:
+    /// ```
+    /// Filename → [UInt8] (ASCII) → String (UTF-8 interpretation)
+    /// ```
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// let filename = try RFC_2183.Filename("document.pdf")
+    /// let bytes = [UInt8](filename)
+    /// ```
+    ///
+    /// - Parameter filename: The filename to serialize
+    public init(_ filename: RFC_2183.Filename) {
+        self = Array(filename.value.utf8)
+    }
+}
+
+// MARK: - Protocol Conformances
+
+extension RFC_2183.Filename: RawRepresentable {
+    public var rawValue: String { value }
+
+    public init?(rawValue: String) {
+        try? self.init(rawValue)
+    }
+}
+
+extension RFC_2183.Filename: CustomStringConvertible {}

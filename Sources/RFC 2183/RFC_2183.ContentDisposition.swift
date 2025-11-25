@@ -1,4 +1,11 @@
-import INCITS_4_1986
+//
+//  RFC_2183.ContentDisposition.swift
+//  swift-rfc-2183
+//
+//  Created by Coen ten Thije Boonkkamp on 19/11/2025.
+//
+
+public import INCITS_4_1986
 import RFC_2045
 public import RFC_5322
 
@@ -60,8 +67,20 @@ extension RFC_2183 {
     }
 }
 
-extension RFC_2183.ContentDisposition {
-    /// Parses a Content-Disposition header from canonical byte representation
+extension [UInt8] {
+    public init(
+        _ contentDisposition: RFC_2183.ContentDisposition.Type
+    ) {
+        self = Array("Content-Disposition".utf8)
+    }
+}
+
+// MARK: - UInt8.ASCII.Serializing
+
+extension RFC_2183.ContentDisposition: UInt8.ASCII.Serializing {
+    public static let serialize: @Sendable (Self) -> [UInt8] = [UInt8].init
+
+    /// Parses a Content-Disposition header from canonical byte representation (CANONICAL PRIMITIVE)
     ///
     /// This is the primitive parser that works at the byte level.
     /// RFC 2183 headers are pure ASCII, so this parser operates on ASCII bytes.
@@ -81,18 +100,19 @@ extension RFC_2183.ContentDisposition {
     ///
     /// ```swift
     /// let bytes = Array("attachment; filename=\"doc.pdf\"".utf8)
-    /// let disposition = try RFC_2183.ContentDisposition(parsing: bytes)
+    /// let disposition = try RFC_2183.ContentDisposition(ascii: bytes)
     /// ```
     ///
     /// - Parameter bytes: The ASCII byte representation of the header value
-    /// - Throws: `RFC_2183.Error` if the bytes are malformed
-    public init(_ bytes: [UInt8]) throws {
+    /// - Throws: `RFC_2183.ContentDisposition.Error` if the bytes are malformed
+    public init<Bytes: Collection>(ascii bytes: Bytes, in context: Void) throws(Error)
+    where Bytes.Element == UInt8 {
         // Split on first semicolon to separate type from parameters
         guard let firstSemicolon = bytes.firstIndex(of: .ascii.semicolon) else {
             // No parameters, just disposition type
             let typeBytes = bytes.trimming(.ascii.whitespaces)
             guard !typeBytes.isEmpty else {
-                throw RFC_2183.Error.invalidFormat(String(decoding: bytes, as: UTF8.self))
+                throw Error.emptyDispositionType
             }
 
             self.type = RFC_2183.DispositionType(
@@ -103,21 +123,24 @@ extension RFC_2183.ContentDisposition {
         }
 
         // Parse disposition type
-        let typeBytes = bytes[..<firstSemicolon].trimming(.ascii.whitespaces)
+        let typeBytes = (bytes[..<firstSemicolon]).trimming(.ascii.whitespaces)
         guard !typeBytes.isEmpty else {
-            throw RFC_2183.Error.invalidFormat(String(decoding: bytes, as: UTF8.self))
+            throw Error.emptyDispositionType
         }
 
         self.type = RFC_2183.DispositionType(
             rawValue: String(decoding: typeBytes, as: UTF8.self)
         )
 
-        // Parse parameters
-        let parametersBytes = bytes[(firstSemicolon + 1)...]
+        // Parse parameters – work on a slice, avoid Array copy
+        let parametersStartIndex = bytes.index(after: firstSemicolon)
+        let parametersSlice = bytes[parametersStartIndex...]
+
         var rawParams: [String: String] = [:]
 
         // Split on semicolons to get parameter pairs
-        let paramPairs = parametersBytes.split(separator: .ascii.semicolon)
+        let paramPairs = parametersSlice.split(separator: .ascii.semicolon)
+        rawParams.reserveCapacity(paramPairs.count)
 
         for paramPair in paramPairs {
             // Split on equals to get key=value
@@ -125,30 +148,45 @@ extension RFC_2183.ContentDisposition {
                 continue
             }
 
-            let keyBytes = paramPair[..<equalsIndex].trimming(.ascii.whitespaces)
-            var valueBytes = Array(paramPair[(equalsIndex + 1)...].trimming(.ascii.whitespaces))
+            let keyBytes = (paramPair[..<equalsIndex]).trimming(.ascii.whitespaces)
+            guard !keyBytes.isEmpty else { continue }
 
-            guard !keyBytes.isEmpty else {
-                continue
+            let valueStartIndex = paramPair.index(after: equalsIndex)
+            let valueSlice = (paramPair[valueStartIndex...]).trimming(.ascii.whitespaces)
+            guard !valueSlice.isEmpty else { continue }
+
+            // Determine quoting with a single forward pass
+            guard let firstByte = valueSlice.first else { continue }
+
+            var lastByte = firstByte
+            var length = 0
+            for byte in valueSlice {
+                lastByte = byte
+                length &+= 1
             }
 
-            // Handle quoted values
-            if valueBytes.first == .ascii.quotationMark && valueBytes.last == .ascii.quotationMark {
-                // Remove surrounding quotes
-                valueBytes = Array(valueBytes.dropFirst().dropLast())
+            // Lowercase at the ASCII byte level, then allocate String once
+            let key = String(decoding: keyBytes.ascii.lowercased(), as: UTF8.self)
 
-                // Unescape quotes per RFC 2183
-                valueBytes = Self.unescapeQuotes(valueBytes)
+            let value: String
+            if firstByte == .ascii.quotationMark,
+               lastByte == .ascii.quotationMark,
+               length >= 2
+            {
+                // Only now allocate a new buffer for the unescaped content
+                let inner = valueSlice.dropFirst().dropLast()
+                let unescaped = Self.unescapeQuotes(inner)
+                value = String(decoding: unescaped, as: UTF8.self)
+            } else {
+                // No unescaping: decode directly from the slice, zero extra copies
+                value = String(decoding: valueSlice, as: UTF8.self)
             }
-
-            let key = String(decoding: keyBytes, as: UTF8.self).lowercased()
-            let value = String(decoding: valueBytes, as: UTF8.self)
 
             rawParams[key] = value
         }
 
         // Convert raw parameters to typed parameters
-        self.parameters = try Self.parseParameters(rawParams)
+        self.parameters = Self.parseParameters(rawParams)
     }
 
     /// Unescapes quoted-pair sequences in parameter values
@@ -157,20 +195,33 @@ extension RFC_2183.ContentDisposition {
     ///
     /// - Parameter bytes: The bytes to unescape
     /// - Returns: Unescaped bytes
-    private static func unescapeQuotes(_ bytes: [UInt8]) -> [UInt8] {
+    private static func unescapeQuotes<C: Collection>(
+        _ bytes: C
+    ) -> [UInt8] where C.Element == UInt8 {
         var result: [UInt8] = []
-        var i = 0
+        result.reserveCapacity(bytes.count)
 
-        while i < bytes.count {
-            if i < bytes.count - 1 &&
-               bytes[i] == .ascii.reverseSolidus && // backslash
-               bytes[i + 1] == .ascii.quotationMark { // quote
-                // Skip the backslash, include the quote
-                result.append(bytes[i + 1])
-                i += 2
+        var i = bytes.startIndex
+        let end = bytes.endIndex
+
+        while i != end {
+            let current = bytes[i]
+            let nextIndex = bytes.index(after: i)
+
+            // Check for backslash + quote
+            if nextIndex != end,
+               current == .ascii.reverseSolidus,        // '\'
+               bytes[nextIndex] == .ascii.quotationMark // '"'
+            {
+                // Include only the quote
+                result.append(.ascii.quotationMark)
+
+                // Skip both characters
+                i = bytes.index(after: nextIndex)
             } else {
-                result.append(bytes[i])
-                i += 1
+                // Not an escape sequence
+                result.append(current)
+                i = nextIndex
             }
         }
 
@@ -178,48 +229,28 @@ extension RFC_2183.ContentDisposition {
     }
 }
 
+// MARK: - Parameter Parsing
+
 extension RFC_2183.ContentDisposition {
-
-    /// Parses a Content-Disposition header value
-    ///
-    /// Composes through canonical byte representation for academic correctness.
-    ///
-    /// ## Category Theory
-    ///
-    /// Parsing composes as:
-    /// ```
-    /// String → [UInt8] (UTF-8) → ContentDisposition
-    /// ```
-    ///
-    /// - Parameter headerValue: The header value (e.g., "attachment; filename=\"file.pdf\"")
-    /// - Throws: `RFC_2183.Error.invalidFormat` if the value is malformed
-    public init(parsing headerValue: String) throws {
-        // Convert to canonical byte representation (UTF-8, which is ASCII-compatible)
-        let bytes = Array(headerValue.utf8)
-
-        // Delegate to primitive byte-level parser
-        try self.init(bytes)
-    }
-
     /// Parse raw string parameters into typed Parameters struct.
-    package static func parseParameters(_ raw: [String: String]) throws -> RFC_2183.Parameters {
+    package static func parseParameters(_ raw: [String: String]) -> RFC_2183.Parameters {
         var params = RFC_2183.Parameters()
 
-        // Parse standard parameters with validation
+        // Parse standard parameters with validation (silently ignore invalid values)
         if let filenameStr = raw["filename"] {
             params.filename = try? RFC_2183.Filename(filenameStr)
         }
 
         if let creationDateStr = raw["creation-date"] {
-            params.creationDate = try? RFC_5322.DateTime(parsing: creationDateStr)
+            params.creationDate = try? RFC_5322.DateTime(ascii: Array(creationDateStr.utf8))
         }
 
         if let modDateStr = raw["modification-date"] {
-            params.modificationDate = try? RFC_5322.DateTime(parsing: modDateStr)
+            params.modificationDate = try? RFC_5322.DateTime(ascii: Array(modDateStr.utf8))
         }
 
         if let readDateStr = raw["read-date"] {
-            params.readDate = try? RFC_5322.DateTime(parsing: readDateStr)
+            params.readDate = try? RFC_5322.DateTime(ascii: Array(readDateStr.utf8))
         }
 
         if let sizeStr = raw["size"] {
@@ -247,8 +278,6 @@ extension RFC_2183.ContentDisposition {
     }
 }
 
-// MARK: - Disposition Type
-
 // MARK: - Convenience Accessors
 
 extension RFC_2183.ContentDisposition {
@@ -260,7 +289,7 @@ extension RFC_2183.ContentDisposition {
     ///
     /// ```swift
     /// let disposition = try RFC_2183.ContentDisposition(
-    ///     parsing: "attachment; filename=\"document.pdf\""
+    ///     "attachment; filename=\"document.pdf\""
     /// )
     /// print(disposition.filename?.value) // "document.pdf"
     /// ```
@@ -401,13 +430,9 @@ extension RFC_2183.ContentDisposition {
     }
 }
 
-
-
 // MARK: - Protocol Conformances
 
-extension RFC_2183.ContentDisposition: CustomStringConvertible {
-    public var description: String { .init(self) }
-}
+extension RFC_2183.ContentDisposition: CustomStringConvertible {}
 
 extension RFC_2183.DispositionType: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {

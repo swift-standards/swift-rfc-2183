@@ -1,4 +1,10 @@
-import Foundation
+//
+//  RFC_2183.ParameterName.swift
+//  swift-rfc-2183
+//
+//  Created by Coen ten Thije Boonkkamp on 19/11/2025.
+//
+
 public import RFC_2045
 
 // RFC 2183 uses RFC 2045 parameter name handling
