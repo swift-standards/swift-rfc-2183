@@ -75,9 +75,9 @@ extension [UInt8] {
     }
 }
 
-// MARK: - UInt8.ASCII.Serializing
+// MARK: - UInt8.ASCII.Serializable
 
-extension RFC_2183.ContentDisposition: UInt8.ASCII.Serializing {
+extension RFC_2183.ContentDisposition: UInt8.ASCII.Serializable {
     public static let serialize: @Sendable (Self) -> [UInt8] = [UInt8].init
 
     /// Parses a Content-Disposition header from canonical byte representation (CANONICAL PRIMITIVE)
