@@ -61,8 +61,8 @@ extension [UInt8] {
         self = []
 
         // Estimate capacity: type + parameters
-        let estimatedCapacity = contentDisposition.type.rawValue.count +
-                                (contentDisposition.parameters.estimatedSize)
+        let estimatedCapacity =
+            contentDisposition.type.rawValue.count + (contentDisposition.parameters.estimatedSize)
         self.reserveCapacity(estimatedCapacity)
 
         // Append disposition type
@@ -72,101 +72,103 @@ extension [UInt8] {
 
         // Add standard parameters in RFC-defined order
         if let filename = params.filename {
-            self.append(.ascii.semicolon) // ";"
+            self.append(.ascii.semicolon)  // ";"
             self.append(.ascii.space)
             self.append(contentsOf: "filename".utf8)
-            self.append(.ascii.equalsSign) // "="
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.equalsSign)  // "="
+            self.append(.ascii.quotationMark)  // "\""
 
             // Escape quotes in filename
             for char in filename.value {
                 if char == "\"" {
-                    self.append(.ascii.reverseSolidus) // "\\"
+                    self.append(.ascii.reverseSolidus)  // "\\"
                 }
                 self.append(contentsOf: char.utf8)
             }
 
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.quotationMark)  // "\""
         }
 
         if let creationDate = params.creationDate {
-            self.append(.ascii.semicolon) // ";"
+            self.append(.ascii.semicolon)  // ";"
             self.append(.ascii.space)
             self.append(contentsOf: "creation-date".utf8)
-            self.append(.ascii.equalsSign) // "="
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.equalsSign)  // "="
+            self.append(.ascii.quotationMark)  // "\""
             let dateString = String(creationDate)
             self.append(contentsOf: dateString.utf8)
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.quotationMark)  // "\""
         }
 
         if let modificationDate = params.modificationDate {
-            self.append(.ascii.semicolon) // ";"
+            self.append(.ascii.semicolon)  // ";"
             self.append(.ascii.space)
             self.append(contentsOf: "modification-date".utf8)
-            self.append(.ascii.equalsSign) // "="
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.equalsSign)  // "="
+            self.append(.ascii.quotationMark)  // "\""
             let dateString = String(modificationDate)
             self.append(contentsOf: dateString.utf8)
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.quotationMark)  // "\""
         }
 
         if let readDate = params.readDate {
-            self.append(.ascii.semicolon) // ";"
+            self.append(.ascii.semicolon)  // ";"
             self.append(.ascii.space)
             self.append(contentsOf: "read-date".utf8)
-            self.append(.ascii.equalsSign) // "="
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.equalsSign)  // "="
+            self.append(.ascii.quotationMark)  // "\""
             let dateString = String(readDate)
             self.append(contentsOf: dateString.utf8)
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.quotationMark)  // "\""
         }
 
         if let size = params.size {
             // Size is unquoted per RFC 2183
-            self.append(.ascii.semicolon) // ";"
+            self.append(.ascii.semicolon)  // ";"
             self.append(.ascii.space)
             self.append(contentsOf: "size".utf8)
-            self.append(.ascii.equalsSign) // "="
+            self.append(.ascii.equalsSign)  // "="
             self.append(contentsOf: String(size.bytes).utf8)
         }
 
         // RFC 7578 extension - name parameter
         if let name = params.name {
-            self.append(.ascii.semicolon) // ";"
+            self.append(.ascii.semicolon)  // ";"
             self.append(.ascii.space)
             self.append(contentsOf: "name".utf8)
-            self.append(.ascii.equalsSign) // "="
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.equalsSign)  // "="
+            self.append(.ascii.quotationMark)  // "\""
 
             // Escape quotes in name
             for char in name {
                 if char == "\"" {
-                    self.append(.ascii.reverseSolidus) // "\\"
+                    self.append(.ascii.reverseSolidus)  // "\\"
                 }
                 self.append(contentsOf: char.utf8)
             }
 
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.quotationMark)  // "\""
         }
 
         // Extension parameters in sorted order for stability
-        for (key, value) in params.extensionParameters.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
-            self.append(.ascii.semicolon) // ";"
+        for (key, value) in params.extensionParameters.sorted(by: {
+            $0.key.rawValue < $1.key.rawValue
+        }) {
+            self.append(.ascii.semicolon)  // ";"
             self.append(.ascii.space)
             self.append(contentsOf: key.rawValue.utf8)
-            self.append(.ascii.equalsSign) // "="
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.equalsSign)  // "="
+            self.append(.ascii.quotationMark)  // "\""
 
             // Escape quotes in value
             for char in value {
                 if char == "\"" {
-                    self.append(.ascii.reverseSolidus) // "\\"
+                    self.append(.ascii.reverseSolidus)  // "\\"
                 }
                 self.append(contentsOf: char.utf8)
             }
 
-            self.append(.ascii.quotationMark) // "\""
+            self.append(.ascii.quotationMark)  // "\""
         }
     }
 }
@@ -179,22 +181,22 @@ extension RFC_2183.Parameters {
         var size = 0
 
         if let filename = filename {
-            size += 20 + filename.value.count // "; filename=\"...\""
+            size += 20 + filename.value.count  // "; filename=\"...\""
         }
         if creationDate != nil {
-            size += 50 // "; creation-date=\"...\""
+            size += 50  // "; creation-date=\"...\""
         }
         if modificationDate != nil {
-            size += 55 // "; modification-date=\"...\""
+            size += 55  // "; modification-date=\"...\""
         }
         if readDate != nil {
-            size += 45 // "; read-date=\"...\""
+            size += 45  // "; read-date=\"...\""
         }
-        if size != nil {
-            size += 20 // "; size=..."
+        if self.size != nil {
+            size += 20  // "; size=..."
         }
         if let name = name {
-            size += 15 + name.count // "; name=\"...\""
+            size += 15 + name.count  // "; name=\"...\""
         }
 
         // Extension parameters

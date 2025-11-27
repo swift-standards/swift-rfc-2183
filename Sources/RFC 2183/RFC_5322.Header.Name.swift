@@ -12,5 +12,8 @@ extension RFC_5322.Header.Name {
     ///
     /// The Content-Disposition header field conveys presentation information
     /// for a message or body part.
-    public static let contentDisposition: Self = .init(__unchecked: (), rawValue: "Content-Disposition")
+    public static let contentDisposition: Self = .init(
+        __unchecked: (),
+        rawValue: "Content-Disposition"
+    )
 }

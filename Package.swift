@@ -8,7 +8,7 @@ let package = Package(
         .macOS(.v15),
         .iOS(.v18),
         .tvOS(.v18),
-        .watchOS(.v11)
+        .watchOS(.v11),
     ],
     products: [
         .library(
@@ -17,9 +17,9 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/swift-standards/swift-incits-4-1986.git", from: "0.0.1"),
-        .package(url: "https://github.com/swift-standards/swift-rfc-2045.git", from: "0.1.0"),
-        .package(url: "https://github.com/swift-standards/swift-rfc-5322.git", from: "0.1.0")
+        .package(url: "https://github.com/swift-standards/swift-incits-4-1986.git", from: "0.4.1"),
+        .package(url: "https://github.com/swift-standards/swift-rfc-2045.git", from: "0.2.0"),
+        .package(url: "https://github.com/swift-standards/swift-rfc-5322.git", from: "0.3.0"),
     ],
     targets: [
         .target(
@@ -33,7 +33,7 @@ let package = Package(
         .testTarget(
             name: "RFC 2183".tests,
             dependencies: ["RFC 2183"]
-        )
+        ),
     ],
     swiftLanguageModes: [.v6]
 )
@@ -45,9 +45,10 @@ extension String {
 
 for target in package.targets where ![.system, .binary, .plugin].contains(target.type) {
     let existing = target.swiftSettings ?? []
-    target.swiftSettings = existing + [
-        .enableUpcomingFeature("ExistentialAny"),
-        .enableUpcomingFeature("InternalImportsByDefault"),
-        .enableUpcomingFeature("MemberImportVisibility")
-    ]
+    target.swiftSettings =
+        existing + [
+            .enableUpcomingFeature("ExistentialAny"),
+            .enableUpcomingFeature("InternalImportsByDefault"),
+            .enableUpcomingFeature("MemberImportVisibility"),
+        ]
 }

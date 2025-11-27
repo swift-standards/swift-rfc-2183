@@ -1,7 +1,8 @@
-import Testing
-@testable import RFC_2183
-@testable import RFC_2045
 import INCITS_4_1986
+import Testing
+
+@testable import RFC_2045
+@testable import RFC_2183
 
 @Suite
 struct `Content-Disposition Tests` {
@@ -40,7 +41,9 @@ struct `Content-Disposition Tests` {
 
     @Test
     func `Parse form-data with name and filename`() throws {
-        let disposition = try RFC_2183.ContentDisposition("form-data; name=\"avatar\"; filename=\"photo.jpg\"")
+        let disposition = try RFC_2183.ContentDisposition(
+            "form-data; name=\"avatar\"; filename=\"photo.jpg\""
+        )
         #expect(disposition.type == .formData)
         #expect(disposition.name == "avatar")
         #expect(disposition.filename?.value == "photo.jpg")
@@ -54,7 +57,7 @@ struct `Content-Disposition Tests` {
             "attachment; filename=\"data.bin\"; size=1048576"
         )
         #expect(disposition.filename?.value == "data.bin")
-        #expect(disposition.size?.bytes == 1048576)
+        #expect(disposition.size?.bytes == 1_048_576)
     }
 
     @Test
@@ -104,7 +107,9 @@ struct `Content-Disposition Tests` {
 
     @Test
     func `Create attachment using convenience`() throws {
-        let disposition = RFC_2183.ContentDisposition.attachment(filename: try RFC_2183.Filename("report.pdf"))
+        let disposition = RFC_2183.ContentDisposition.attachment(
+            filename: try RFC_2183.Filename("report.pdf")
+        )
         #expect(disposition.type == .attachment)
         #expect(disposition.filename?.value == "report.pdf")
         #expect(String(disposition) == "attachment; filename=\"report.pdf\"")
@@ -112,7 +117,10 @@ struct `Content-Disposition Tests` {
 
     @Test
     func `Create form-data using convenience`() throws {
-        let disposition = RFC_2183.ContentDisposition.formData(name: "avatar", filename: try RFC_2183.Filename("photo.jpg"))
+        let disposition = RFC_2183.ContentDisposition.formData(
+            name: "avatar",
+            filename: try RFC_2183.Filename("photo.jpg")
+        )
         #expect(disposition.type == .formData)
         #expect(disposition.name == "avatar")
         #expect(disposition.filename?.value == "photo.jpg")
@@ -155,7 +163,10 @@ struct `Content-Disposition Tests` {
     func `Custom disposition type`() throws {
         let disposition = try RFC_2183.ContentDisposition("x-custom; param=value")
         #expect(disposition.type.rawValue == "x-custom")
-        #expect(disposition.parameters.extensionParameters[RFC_2045.Parameter.Name(rawValue: "param")] == "value")
+        #expect(
+            disposition.parameters.extensionParameters[RFC_2045.Parameter.Name(rawValue: "param")]
+                == "value"
+        )
     }
 
     // MARK: - Edge Cases

@@ -98,7 +98,10 @@ extension RFC_2183.Filename: UInt8.ASCII.Serializable {
                 if byte > 127 {
                     throw Error.notASCII(String(decoding: bytes, as: UTF8.self))
                 }
-                throw Error.containsControlCharacters(String(decoding: bytes, as: UTF8.self), byte: byte)
+                throw Error.containsControlCharacters(
+                    String(decoding: bytes, as: UTF8.self),
+                    byte: byte
+                )
             }
         }
 

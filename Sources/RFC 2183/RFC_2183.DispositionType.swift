@@ -32,7 +32,7 @@ extension RFC_2183 {
     /// > automatically and requires some form of action from the user to view it.
     public struct DispositionType: RawRepresentable, Hashable, Sendable, Codable {
         public let rawValue: String
-        
+
         /// Creates a disposition type
         ///
         /// - Parameter rawValue: The disposition type name (case-insensitive)
@@ -43,21 +43,21 @@ extension RFC_2183 {
 }
 
 extension RFC_2183.DispositionType {
-    
+
     // MARK: - Standard Disposition Types (RFC 2183)
-    
+
     /// Content should be displayed inline
     ///
     /// **RFC 2183 Section 2.1**: Display automatically upon message display
     public static let inline = Self(rawValue: "inline")
-    
+
     /// Content should be treated as an attachment
     ///
     /// **RFC 2183 Section 2.2**: Not displayed automatically, requires user action
     public static let attachment = Self(rawValue: "attachment")
-    
+
     // MARK: - Extension Types
-    
+
     /// Form data (RFC 7578)
     ///
     /// Used in multipart/form-data submissions with field names and filenames

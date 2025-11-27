@@ -169,10 +169,11 @@ extension RFC_2183.ContentDisposition: UInt8.ASCII.Serializable {
             let key = String(decoding: keyBytes.ascii.lowercased(), as: UTF8.self)
 
             let value: String
-            if firstByte == .ascii.quotationMark,
-               lastByte == .ascii.quotationMark,
-               length >= 2
-            {
+            let isQuoted =
+                firstByte == .ascii.quotationMark
+                && lastByte == .ascii.quotationMark
+                && length >= 2
+            if isQuoted {
                 // Only now allocate a new buffer for the unescaped content
                 let inner = valueSlice.dropFirst().dropLast()
                 let unescaped = Self.unescapeQuotes(inner)
@@ -209,10 +210,11 @@ extension RFC_2183.ContentDisposition: UInt8.ASCII.Serializable {
             let nextIndex = bytes.index(after: i)
 
             // Check for backslash + quote
-            if nextIndex != end,
-               current == .ascii.reverseSolidus,        // '\'
-               bytes[nextIndex] == .ascii.quotationMark // '"'
-            {
+            let isEscapedQuote =
+                nextIndex != end
+                && current == .ascii.reverseSolidus  // '\'
+                && bytes[nextIndex] == .ascii.quotationMark  // '"'
+            if isEscapedQuote {
                 // Include only the quote
                 result.append(.ascii.quotationMark)
 
@@ -267,7 +269,7 @@ extension RFC_2183.ContentDisposition {
             "modification-date",
             "read-date",
             "size",
-            "name"
+            "name",
         ]
 
         for (key, value) in raw where !knownKeys.contains(key) {
