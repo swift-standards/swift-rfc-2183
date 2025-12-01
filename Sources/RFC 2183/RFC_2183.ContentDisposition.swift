@@ -165,7 +165,9 @@ extension RFC_2183.ContentDisposition: UInt8.ASCII.Serializable {
         }
 
         // Extension parameters in sorted order for stability
-        for (key, value) in params.extensionParameters.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+        for (key, value) in params.extensionParameters.sorted(by: {
+            $0.key.rawValue < $1.key.rawValue
+        }) {
             buffer.append(.ascii.semicolon)
             buffer.append(.ascii.space)
             buffer.append(contentsOf: key.rawValue.utf8)

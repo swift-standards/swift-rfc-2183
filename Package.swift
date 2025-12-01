@@ -17,9 +17,9 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/swift-standards/swift-incits-4-1986.git", from: "0.4.1"),
-        .package(url: "https://github.com/swift-standards/swift-rfc-2045.git", from: "0.2.0"),
-        .package(url: "https://github.com/swift-standards/swift-rfc-5322.git", from: "0.4.0"),
+        .package(url: "https://github.com/swift-standards/swift-incits-4-1986.git", from: "0.6.0"),
+        .package(url: "https://github.com/swift-standards/swift-rfc-2045.git", from: "0.3.0"),
+        .package(url: "https://github.com/swift-standards/swift-rfc-5322.git", from: "0.6.0"),
     ],
     targets: [
         .target(
