@@ -55,7 +55,12 @@ extension RFC_2183 {
 // MARK: - UInt8.ASCII.Serializable
 
 extension RFC_2183.Size: UInt8.ASCII.Serializable {
-    public static let serialize: @Sendable (Self) -> [UInt8] = [UInt8].init
+    public static func serialize<Buffer: RangeReplaceableCollection>(
+        ascii size: Self,
+        into buffer: inout Buffer
+    ) where Buffer.Element == UInt8 {
+        buffer.append(contentsOf: String(size.bytes).utf8)
+    }
 
     /// Parses a size from canonical byte representation (CANONICAL PRIMITIVE)
     ///

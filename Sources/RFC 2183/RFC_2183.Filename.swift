@@ -58,7 +58,12 @@ extension RFC_2183 {
 // MARK: - UInt8.ASCII.Serializable
 
 extension RFC_2183.Filename: UInt8.ASCII.Serializable {
-    public static let serialize: @Sendable (Self) -> [UInt8] = [UInt8].init
+    public static func serialize<Buffer: RangeReplaceableCollection>(
+        ascii filename: Self,
+        into buffer: inout Buffer
+    ) where Buffer.Element == UInt8 {
+        buffer.append(contentsOf: filename.value.utf8)
+    }
 
     /// Parses a filename from canonical byte representation (CANONICAL PRIMITIVE)
     ///

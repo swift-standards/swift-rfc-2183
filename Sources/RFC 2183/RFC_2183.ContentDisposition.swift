@@ -78,7 +78,111 @@ extension [UInt8] {
 // MARK: - UInt8.ASCII.Serializable
 
 extension RFC_2183.ContentDisposition: UInt8.ASCII.Serializable {
-    public static let serialize: @Sendable (Self) -> [UInt8] = [UInt8].init
+    public static func serialize<Buffer: RangeReplaceableCollection>(
+        ascii disposition: Self,
+        into buffer: inout Buffer
+    ) where Buffer.Element == UInt8 {
+        // Append disposition type
+        buffer.append(contentsOf: disposition.type.rawValue.utf8)
+
+        let params = disposition.parameters
+
+        // Add standard parameters in RFC-defined order
+        if let filename = params.filename {
+            buffer.append(.ascii.semicolon)
+            buffer.append(.ascii.space)
+            buffer.append(contentsOf: "filename".utf8)
+            buffer.append(.ascii.equalsSign)
+            buffer.append(.ascii.quotationMark)
+
+            // Escape quotes in filename
+            for char in filename.value {
+                if char == "\"" {
+                    buffer.append(.ascii.reverseSolidus)
+                }
+                buffer.append(contentsOf: char.utf8)
+            }
+
+            buffer.append(.ascii.quotationMark)
+        }
+
+        if let creationDate = params.creationDate {
+            buffer.append(.ascii.semicolon)
+            buffer.append(.ascii.space)
+            buffer.append(contentsOf: "creation-date".utf8)
+            buffer.append(.ascii.equalsSign)
+            buffer.append(.ascii.quotationMark)
+            RFC_5322.DateTime.serialize(ascii: creationDate, into: &buffer)
+            buffer.append(.ascii.quotationMark)
+        }
+
+        if let modificationDate = params.modificationDate {
+            buffer.append(.ascii.semicolon)
+            buffer.append(.ascii.space)
+            buffer.append(contentsOf: "modification-date".utf8)
+            buffer.append(.ascii.equalsSign)
+            buffer.append(.ascii.quotationMark)
+            RFC_5322.DateTime.serialize(ascii: modificationDate, into: &buffer)
+            buffer.append(.ascii.quotationMark)
+        }
+
+        if let readDate = params.readDate {
+            buffer.append(.ascii.semicolon)
+            buffer.append(.ascii.space)
+            buffer.append(contentsOf: "read-date".utf8)
+            buffer.append(.ascii.equalsSign)
+            buffer.append(.ascii.quotationMark)
+            RFC_5322.DateTime.serialize(ascii: readDate, into: &buffer)
+            buffer.append(.ascii.quotationMark)
+        }
+
+        if let size = params.size {
+            // Size is unquoted per RFC 2183
+            buffer.append(.ascii.semicolon)
+            buffer.append(.ascii.space)
+            buffer.append(contentsOf: "size".utf8)
+            buffer.append(.ascii.equalsSign)
+            buffer.append(contentsOf: String(size.bytes).utf8)
+        }
+
+        // RFC 7578 extension - name parameter
+        if let name = params.name {
+            buffer.append(.ascii.semicolon)
+            buffer.append(.ascii.space)
+            buffer.append(contentsOf: "name".utf8)
+            buffer.append(.ascii.equalsSign)
+            buffer.append(.ascii.quotationMark)
+
+            // Escape quotes in name
+            for char in name {
+                if char == "\"" {
+                    buffer.append(.ascii.reverseSolidus)
+                }
+                buffer.append(contentsOf: char.utf8)
+            }
+
+            buffer.append(.ascii.quotationMark)
+        }
+
+        // Extension parameters in sorted order for stability
+        for (key, value) in params.extensionParameters.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+            buffer.append(.ascii.semicolon)
+            buffer.append(.ascii.space)
+            buffer.append(contentsOf: key.rawValue.utf8)
+            buffer.append(.ascii.equalsSign)
+            buffer.append(.ascii.quotationMark)
+
+            // Escape quotes in value
+            for char in value {
+                if char == "\"" {
+                    buffer.append(.ascii.reverseSolidus)
+                }
+                buffer.append(contentsOf: char.utf8)
+            }
+
+            buffer.append(.ascii.quotationMark)
+        }
+    }
 
     /// Parses a Content-Disposition header from canonical byte representation (CANONICAL PRIMITIVE)
     ///
