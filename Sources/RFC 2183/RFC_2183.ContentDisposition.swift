@@ -75,9 +75,9 @@ extension [UInt8] {
     }
 }
 
-// MARK: - UInt8.ASCII.Serializable
+// MARK: - Binary.ASCII.Serializable
 
-extension RFC_2183.ContentDisposition: UInt8.ASCII.Serializable {
+extension RFC_2183.ContentDisposition: Binary.ASCII.Serializable {
     public static func serialize<Buffer: RangeReplaceableCollection>(
         ascii disposition: Self,
         into buffer: inout Buffer

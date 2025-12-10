@@ -55,9 +55,9 @@ extension RFC_2183 {
     }
 }
 
-// MARK: - UInt8.ASCII.Serializable
+// MARK: - Binary.ASCII.Serializable
 
-extension RFC_2183.Filename: UInt8.ASCII.Serializable {
+extension RFC_2183.Filename: Binary.ASCII.Serializable {
     public static func serialize<Buffer: RangeReplaceableCollection>(
         ascii filename: Self,
         into buffer: inout Buffer
