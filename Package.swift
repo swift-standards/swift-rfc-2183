@@ -17,9 +17,10 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/swift-standards/swift-incits-4-1986.git", from: "0.6.2"),
-        .package(url: "https://github.com/swift-standards/swift-rfc-2045.git", from: "0.3.2"),
-        .package(url: "https://github.com/swift-standards/swift-rfc-5322.git", from: "0.7.0"),
+        .package(path: "../swift-incits-4-1986"),
+        .package(path: "../swift-rfc-2045"),
+        .package(path: "../swift-rfc-5322"),
+        .package(path: "../../swift-primitives/swift-binary-primitives"),
     ],
     targets: [
         .target(
@@ -28,6 +29,7 @@ let package = Package(
                 .product(name: "INCITS 4 1986", package: "swift-incits-4-1986"),
                 .product(name: "RFC 2045", package: "swift-rfc-2045"),
                 .product(name: "RFC 5322", package: "swift-rfc-5322"),
+                .product(name: "Binary Primitives", package: "swift-binary-primitives"),
             ]
         ),
         .testTarget(
