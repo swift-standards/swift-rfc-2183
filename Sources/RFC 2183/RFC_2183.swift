@@ -5,7 +5,7 @@
 //  Created by Coen ten Thije Boonkkamp on 19/11/2025.
 //
 
-@_exported import INCITS_4_1986
+@_exported import ASCII
 
 /// RFC 2183: Communicating Presentation Information in Internet Messages
 ///
