@@ -8,7 +8,7 @@ let package = Package(
         .macOS(.v26),
         .iOS(.v26),
         .tvOS(.v26),
-        .watchOS(.v26),
+        .watchOS(.v26)
     ],
     products: [
         .library(
@@ -20,7 +20,7 @@ let package = Package(
         .package(path: "../../swift-foundations/swift-ascii"),
         .package(path: "../swift-rfc-2045"),
         .package(path: "../swift-rfc-5322"),
-        .package(path: "../../swift-primitives/swift-binary-primitives"),
+        .package(path: "../../swift-primitives/swift-binary-primitives")
     ],
     targets: [
         .target(
@@ -29,13 +29,9 @@ let package = Package(
                 .product(name: "ASCII", package: "swift-ascii"),
                 .product(name: "RFC 2045", package: "swift-rfc-2045"),
                 .product(name: "RFC 5322", package: "swift-rfc-5322"),
-                .product(name: "Binary Primitives", package: "swift-binary-primitives"),
+                .product(name: "Binary Primitives", package: "swift-binary-primitives")
             ]
-        ),
-        .testTarget(
-            name: "RFC 2183".tests,
-            dependencies: ["RFC 2183"]
-        ),
+        )
     ],
     swiftLanguageModes: [.v6]
 )
@@ -51,6 +47,6 @@ for target in package.targets where ![.system, .binary, .plugin].contains(target
         existing + [
             .enableUpcomingFeature("ExistentialAny"),
             .enableUpcomingFeature("InternalImportsByDefault"),
-            .enableUpcomingFeature("MemberImportVisibility"),
+            .enableUpcomingFeature("MemberImportVisibility")
         ]
 }
