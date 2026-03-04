@@ -54,7 +54,6 @@ extension RFC_2183.ContentDisposition.Parse {
 }
 
 extension RFC_2183.ContentDisposition.Parse: Parser.`Protocol` {
-    public typealias ParseOutput = Output
     public typealias Failure = RFC_2183.ContentDisposition.Parse<Input>.Error
 
     @inlinable
