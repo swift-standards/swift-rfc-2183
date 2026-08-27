@@ -1,5 +1,5 @@
-public import ASCII_Serializer_Primitives
-public import Binary_Serializable_Primitives
+public import ASCII_Serializer
+public import Binary_Serializable
 
 extension RFC_2183 {
 

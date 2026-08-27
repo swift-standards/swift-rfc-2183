@@ -1,4 +1,4 @@
-public import Parser_Primitives
+public import Parser
 public import RFC_2045
 
 extension RFC_2183.ContentDisposition {
